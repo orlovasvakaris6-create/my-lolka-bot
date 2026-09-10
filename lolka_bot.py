@@ -6,8 +6,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 # Данные для настройки
+LOLKA_WEBHOOK_URL = "https://lolka.app/api/webhooks/874483596937216/ODc0NDgzNTk2OTM3MjE2.CmMfzZ_OXcUbat6myt3dpWQsu-7ggzNDkbRwd3u2WUw"
 LOLKA_TOKEN = "ODc0Mzk1MzczODE0Nzg1.zk6XxNpWxI8Tg6jH3EHH5nD-z4glNOm80lPLLKTnw20"
-CHANNEL_ID = "874345569781760"
 LOLKA_API_URL = "https://lolka.app"
 
 app = FastAPI()
@@ -38,9 +38,7 @@ def send_lolka_request(endpoint, method="POST", payload=None):
         "Content-Type": "application/json",
     }
     url = f"{LOLKA_API_URL}{endpoint}"
-    if method == "POST":
-        return requests.post(url, json=payload, headers=headers)
-    elif method == "PATCH":
+    if method == "PATCH":
         return requests.patch(url, json=payload, headers=headers)
 
 
@@ -65,13 +63,12 @@ async def create_apply(data: Application):
         f"Реакции для админов: ⏳ (Рассмотрение) | ✅ (Одобрить) | ❌ (Отказать)"
     )
 
-    payload = {"channel_id": CHANNEL_ID, "content": text_content}
+    payload = {"content": text_content}
 
-    res = send_lolka_request(
-        f"/channels/{CHANNEL_ID}/messages", method="POST", payload=payload
-    )
+    # Отправляем через вебхук напрямую
+    res = requests.post(LOLKA_WEBHOOK_URL, json=payload)
 
-    print(f"Ответ от Lolka API: Status {res.status_code}, Body: {res.text}")
+    print(f"Ответ от Lolka Webhook: Status {res.status_code}, Body: {res.text}")
 
     if res.status_code in [200, 201]:
         return {"status": "success", "lolka_response": res.text}
