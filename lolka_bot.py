@@ -71,8 +71,10 @@ async def create_apply(data: Application):
         f"/channels/{CHANNEL_ID}/messages", method="POST", payload=payload
     )
 
+    print(f"Ответ от Lolka API: Status {res.status_code}, Body: {res.text}")
+
     if res.status_code in [200, 201]:
-        return {"status": "success"}
+        return {"status": "success", "lolka_response": res.text}
     return {"status": "error", "details": res.text}
 
 
@@ -110,3 +112,4 @@ async def handle_reaction(request: Request):
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8000))
     uvicorn.run(app, host="0.0.0.0", port=port)
+    
