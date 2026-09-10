@@ -8,6 +8,7 @@ from pydantic import BaseModel
 # Данные для настройки
 LOLKA_WEBHOOK_URL = "https://lolka.app/api/webhooks/874483596937216/ODc0NDgzNTk2OTM3MjE2.CmMfzZ_OXcUbat6myt3dpWQsu-7ggzNDkbRwd3u2WUw"
 LOLKA_TOKEN = "ODc0Mzk1MzczODE0Nzg1.zk6XxNpWxI8Tg6jH3EHH5nD-z4glNOm80lPLLKTnw20"
+CHANNEL_ID = "874345569781760"
 LOLKA_API_URL = "https://lolka.app"
 
 app = FastAPI()
@@ -38,7 +39,11 @@ def send_lolka_request(endpoint, method="POST", payload=None):
         "Content-Type": "application/json",
     }
     url = f"{LOLKA_API_URL}{endpoint}"
-    if method == "PATCH":
+    if method == "POST":
+        return requests.post(url, json=payload, headers=headers)
+    elif method == "PUT":
+        return requests.put(url, headers=headers)
+    elif method == "PATCH":
         return requests.patch(url, json=payload, headers=headers)
 
 
@@ -65,12 +70,24 @@ async def create_apply(data: Application):
 
     payload = {"content": text_content}
 
-    # Отправляем через вебхук напрямую
+    # Отправляем через вебхук
     res = requests.post(LOLKA_WEBHOOK_URL, json=payload)
 
-    print(f"Ответ от Lolka Webhook: Status {res.status_code}, Body: {res.text}")
-
     if res.status_code in [200, 201]:
+        try:
+            res_data = res.json()
+            msg_id = res_data.get("id")
+            
+            # Автоматически ставим реакции-кнопки под сообщением от имени бота
+            if msg_id:
+                for emoji in ["⏳", "✅", "❌"]:
+                    send_lolka_request(
+                        f"/channels/{CHANNEL_ID}/messages/{msg_id}/reactions/{emoji}/@me",
+                        method="PUT"
+                    )
+        except Exception as e:
+            print(f"Ошибка при добавлении реакций: {e}")
+
         return {"status": "success", "lolka_response": res.text}
     return {"status": "error", "details": res.text}
 
