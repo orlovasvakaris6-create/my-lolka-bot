@@ -8,7 +8,7 @@ from pydantic import BaseModel
 # Данные для настройки
 LOLKA_TOKEN = "ODc0Mzk1MzczODE0Nzg1.zk6XxNpWxI8Tg6jH3EHH5nD-z4glNOm80lPLLKTnw20"
 CHANNEL_ID = "874345569781760"
-LOLKA_API_URL = "https://lolka.app/api"
+LOLKA_API_URL = "https://lolka.app"
 
 app = FastAPI()
 
@@ -112,4 +112,3 @@ async def handle_reaction(request: Request):
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8000))
     uvicorn.run(app, host="0.0.0.0", port=port)
-    
